@@ -137,20 +137,11 @@ export async function getUrlId(db: IDBDatabase, id: string): Promise<string> {
 async function getUrlIds(db: IDBDatabase): Promise<string[]> {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('chats', 'readonly');
-    const store = transaction.objectStore('chats');
-    const idList: string[] = [];
+    const index = transaction.objectStore('chats').index('urlId');
+    const request = index.getAllKeys();
 
-    const request = store.openCursor();
-
-    request.onsuccess = (event: Event) => {
-      const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
-
-      if (cursor) {
-        idList.push(cursor.value.urlId);
-        cursor.continue();
-      } else {
-        resolve(idList);
-      }
+    request.onsuccess = () => {
+      resolve(request.result as string[]);
     };
 
     request.onerror = () => {
